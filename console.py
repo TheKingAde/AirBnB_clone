@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 import cmd
 import shlex
@@ -165,7 +165,5 @@ class HBNBCommand(cmd.Cmd):
         print(e)
 
 
-
 if __name__ == '__main__':
   HBNBCommand().cmdloop()
-
