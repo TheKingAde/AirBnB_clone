@@ -4,11 +4,16 @@ import cmd
 import shlex
 from models import storage
 from models.base_model import BaseModel
+from models.state import State
+from models.city import City
+from models.amenity import Amenity
+from models.place import Place
+from models.review import Review
 
 
 class HBNBCommand(cmd.Cmd):
     prompt = '(hbnb) '
-    __classes = {"BaseModel"}
+    __classes = {"BaseModel", "State", "City", "Amenity", "Place", "Review"}
 
     def do_quit(self, arg):
         """Quit command to exit the program"""
@@ -19,47 +24,54 @@ class HBNBCommand(cmd.Cmd):
         return True
 
     def do_create(self, arg):
-        """Creates a new instance of BaseModel"""
-        args = shlex.split(arg)
-        if len(args) < 1:
-            print("** class name missing **")
-            return
-        class_name = args[0]
-        if class_name not in self.__classes:
-            print("** class doesn't exist **")
-            return
-        from models.base_model import BaseModel
-        if len(args) > 1:
-            instance_args = ' '.join(args[1:])
-            try:
+        """Creates a new instance of a specified class"""
+        try:
+            if not arg:
+                raise SyntaxError("** class name missing **")
+
+            args = shlex.split(arg)
+            class_name = args[0]
+
+            if class_name not in self.__classes:
+                raise NameError("** class doesn't exist **")
+
+            if len(args) > 1:
+                instance_args = ' '.join(args[1:])
                 new_instance = eval(class_name + "(" + instance_args + ")")
-                new_instance.save()
-                print(new_instance.id)
-            except Exception as e:
-                print(e)
-        else:
-            new_instance = BaseModel()
+            else:
+                new_instance = eval(class_name + "()")
+
             new_instance.save()
             print(new_instance.id)
+
+        except (SyntaxError, NameError) as e:
+            print(e)
 
     def do_show(self, arg):
         """Prints the string representation of an instance"""
         try:
             if not arg:
                 raise SyntaxError("** class name missing **")
+
             args = arg.split(" ")
             class_name = args[0]
+
             if class_name not in self.__classes:
                 raise NameError("** class doesn't exist **")
+
             obj_id = args[1] if len(args) >= 2 else None
+
             if obj_id is None:
                 raise IndexError("** instance id missing **")
+
             obj_dict = storage.all()
             key = "{}.{}".format(class_name, obj_id)
+
             if key in obj_dict:
                 print(obj_dict[key])
             else:
                 raise KeyError("** no instance found **")
+
         except (SyntaxError, NameError, IndexError, KeyError) as e:
             print(e)
 
@@ -76,8 +88,10 @@ class HBNBCommand(cmd.Cmd):
                 raise IndexError("** class doesn't exist **")
 
             obj_id = args[1] if len(args) >= 2 else None
+
             if obj_id is None:
                 raise IndexError("** instance id missing **")
+
             key = "{}.{}".format(class_name, obj_id)
             obj_dict = storage.all()
 
@@ -103,9 +117,10 @@ class HBNBCommand(cmd.Cmd):
 
             obj_dict = storage.all()
             instances = [
-                    str(obj_dict[key])
-                    for key in obj_dict
-                    if key.startswith(class_name + ".")]
+                str(obj_dict[key])
+                for key in obj_dict
+                if key.startswith(class_name + ".")
+            ]
 
             if instances:
                 print(instances)
